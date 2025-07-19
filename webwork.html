@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>WeBWorK Sınıf Listesi Oluşturucu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Raleway', sans-serif;
+      background-color: #eaeaea;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+    .content {
+      width: 100%;
+      max-width: 700px;
+    }
+    h5 {
+      font-size: 1em;
+      font-weight: normal;
+      text-align: justify;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 15px;
+    }
+    button {
+      padding: 10px 25px;
+      font-size: 16px;
+      font-family: 'Raleway', sans-serif;
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+	.footer {
+		margin-top: 40px;
+		text-align: center;
+		font-size: 14px;
+		color: #666;
+		font-family: 'Raleway', sans-serif;
+	}
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h5>
+      Bu web sayfası, Başkent Üniversitesi WeBWorK sistemi hazırlıkları kapsamında oluşturulmuştur. <strong><a href="https://truva.baskent.edu.tr/akademisyen_listesi/siniflistesi.php" target="_blank">Başkent Sınıf Listesi</a></strong> web sayfasındaki ilgili sınıf listesi metin olarak kopyalanarak aşağıdaki kutucuğa yapıştırılır ve "Oluştur ve İndir" butonuna tıklanarak .lst uzantılı webwork sistem dosyası kullanıcının cihazına indirilir. İndirilen dosya webwork sistemine yüklenerek "Classlist Editor" sayfasında içeri aktarılır ve sınıf listesinin webwork sistemine aktarılması tamamlanır.
+      <br><br>
+      WeBWorK sisteminin hazırlıklarında ve kurulumunda emeği geçen tüm hocalarımıza teşekkür ederiz.
+    </h5>
+
+    <textarea id="input" placeholder=""></textarea>
+    <div class="button-container">
+      <button onclick="processData()">Oluştur ve İndir</button>
+    </div>
+  </div>
+
+  <script>
+    function normalizeTurkish(text) {
+      const map = {
+        'ç': 'c', 'Ç': 'c',
+        'ğ': 'g', 'Ğ': 'g',
+        'ö': 'o', 'Ö': 'o',
+        'ş': 's', 'Ş': 's',
+        'ü': 'u', 'Ü': 'u',
+        'ı': 'i', 'İ': 'i'
+      };
+      return text
+        .replace(/[çğöşüıÇĞÖŞÜİ]/g, c => map[c] || c)
+        .toLowerCase();
+    }
+
+    function processData() {
+      const raw = document.getElementById("input").value.trim();
+      const lines = raw.split("\n");
+      let csv = "";
+
+      for (let line of lines) {
+        const parts = line.split("\t");
+        if (parts.length < 3) continue;
+
+        const studentID = parts[1].toString().trim();
+        const fullName = normalizeTurkish(parts[2]);
+        const firstSpaceIndex = fullName.indexOf(" ");
+
+        let surname = "";
+        let name = "";
+
+        if (firstSpaceIndex !== -1) {
+          surname = fullName.substring(0, firstSpaceIndex);
+          name = fullName.substring(firstSpaceIndex + 1);
+        } else {
+          surname = fullName;
+          name = "";
+        }
+
+        const email = studentID + "@baskent.edu.tr";
+
+        csv += `${studentID},${surname},${name},C,,,,"${email}",${studentID}\r\n`;
+      }
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "classlist.lst";
+      link.click();
+    }
+  </script>
+	<footer class="footer">
+		Samet Sarıoğlan<br>2025
+	</footer>
+</body>
+</html>
